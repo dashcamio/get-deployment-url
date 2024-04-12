@@ -22,6 +22,9 @@ async function tryGetResult(args) {
   await waitForRateLimitReset(result);
 
   const edges = get(result, "repository.ref.target.deployments.edges");
+
+  console.log(edges)
+
   if (!edges) return null;
   return get(edges, `[0].node.latestStatus.environmentUrl`, null);
 }

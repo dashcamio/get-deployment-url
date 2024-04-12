@@ -32537,6 +32537,9 @@ async function tryGetResult(args) {
   await waitForRateLimitReset(result);
 
   const edges = lodash_es_get(result, "repository.ref.target.deployments.edges");
+
+  console.log(edges)
+
   if (!edges) return null;
   return lodash_es_get(edges, `[0].node.latestStatus.environmentUrl`, null);
 }
