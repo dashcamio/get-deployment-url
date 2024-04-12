@@ -1,7 +1,6 @@
 import { getInput, setOutput, setFailed } from "@actions/core";
 import { getOctokit } from "@actions/github";
 import { get } from "lodash-es";
-import fetch from "node-fetch"; // Make sure to install this package or use another method to perform HTTP requests
 import query from "./query.gql";
 
 async function getDeployment(args, retryInterval, searchString) {
@@ -10,7 +9,7 @@ async function getDeployment(args, retryInterval, searchString) {
     deploymentUrl = await tryGetResult(args, searchString);
     if (!deploymentUrl) {
       console.log(
-        `No deployment matching the search string found, waiting ${retryInterval} milliseconds and trying again`
+        `No deployment URL containing the search string found, waiting ${retryInterval} milliseconds and trying again`
       );
     }
     await new Promise((resolve) => setTimeout(resolve, retryInterval));
@@ -27,18 +26,11 @@ async function tryGetResult(args, searchString) {
   const edges = get(result, "repository.ref.target.deployments.edges");
   if (!edges || edges.length === 0) return null;
 
-  const urls = edges.map(edge => get(edge, 'node.latestStatus.environmentUrl', null)).filter(url => url !== null);
-
-  // Check each URL for the searchString and return the first match
-  for (const url of urls) {
-    try {
-      const response = await fetch(url);
-      const text = await response.text();
-      if (text.includes(searchString)) {
-        return url; // Return the first matching URL
-      }
-    } catch (error) {
-      console.error(`Failed to fetch from ${url}: ${error}`);
+  // Check each URL string for the searchString and return the first match
+  for (const edge of edges) {
+    const url = get(edge, 'node.latestStatus.environmentUrl', null);
+    if (url && url.includes(searchString)) {
+      return url; // Return the first matching URL
     }
   }
   return null; // Return null if no matching URL is found
