@@ -32534,11 +32534,12 @@ async function getDeployment(args, retryInterval) {
 async function tryGetResult(args) {
   const octokit = (0,github.getOctokit)((0,core.getInput)("token", { required: true }));
   const result = await octokit.graphql((query_default()), args);
+
+  console.log(result)
+
   await waitForRateLimitReset(result);
 
   const edges = lodash_es_get(result, "repository.ref.target.deployments.edges");
-
-  console.log(edges)
 
   if (!edges) return null;
   return lodash_es_get(edges, `[0].node.latestStatus.environmentUrl`, null);

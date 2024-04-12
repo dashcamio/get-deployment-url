@@ -19,11 +19,12 @@ async function getDeployment(args, retryInterval) {
 async function tryGetResult(args) {
   const octokit = getOctokit(getInput("token", { required: true }));
   const result = await octokit.graphql(query, args);
+
+  console.log(result)
+
   await waitForRateLimitReset(result);
 
   const edges = get(result, "repository.ref.target.deployments.edges");
-
-  console.log(edges)
 
   if (!edges) return null;
   return get(edges, `[0].node.latestStatus.environmentUrl`, null);
