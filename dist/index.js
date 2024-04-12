@@ -32568,7 +32568,7 @@ async function run() {
       process.env.GITHUB_HEAD_REF ||
       process.env.GITHUB_REF.match(/(?<=refs\/heads\/).+/g)[0];
     const retryInterval = Number((0,core.getInput)("retryInterval"));
-    const searchString = (0,core.getInput)("searchString", { required: true });
+    const searchString = (0,core.getInput)("search", { required: true });
 
     const args = { repo, owner, branch };
     console.log("Starting to run with following input:", args);
