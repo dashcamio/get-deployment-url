@@ -56,7 +56,7 @@ async function run() {
 
     console.log(deployments)
     
-    setOutput("deployments", deployments); // Update output name and value
+    setOutput("deployments", JSON.stringify(deployments)); // Update output name and value
     console.log("Deployments set: ", JSON.stringify(deployments));
   } catch (error) {
     setFailed(error.message);

@@ -32572,7 +32572,7 @@ async function run() {
 
     console.log(deployments)
     
-    ;(0,core.setOutput)("deployments", deployments); // Update output name and value
+    ;(0,core.setOutput)("deployments", JSON.stringify(deployments)); // Update output name and value
     console.log("Deployments set: ", JSON.stringify(deployments));
   } catch (error) {
     (0,core.setFailed)(error.message);
