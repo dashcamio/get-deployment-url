@@ -29188,6 +29188,14 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 464:
+/***/ ((module) => {
+
+module.exports = eval("require")("node-fetch");
+
+
+/***/ }),
+
 /***/ 7506:
 /***/ ((module) => {
 
@@ -32510,6 +32518,9 @@ function get(object, path, defaultValue) {
 
 /* harmony default export */ const lodash_es_get = (get);
 
+// EXTERNAL MODULE: ./node_modules/@vercel/ncc/dist/ncc/@@notfound.js?node-fetch
+var _notfoundnode_fetch = __nccwpck_require__(464);
+var _notfoundnode_fetch_default = /*#__PURE__*/__nccwpck_require__.n(_notfoundnode_fetch);
 // EXTERNAL MODULE: ./query.gql
 var query = __nccwpck_require__(7506);
 var query_default = /*#__PURE__*/__nccwpck_require__.n(query);
@@ -32517,37 +32528,47 @@ var query_default = /*#__PURE__*/__nccwpck_require__.n(query);
 
 
 
+ // Make sure to install this package or use another method to perform HTTP requests
 
 
-async function getDeployment(args, retryInterval) {
-  let deployments = [];
-  while (deployments.length === 0) {  // Check for an empty array
-    deployments = await tryGetResult(args);
-    if (deployments.length === 0) {  // Still check and log if no deployments
+async function getDeployment(args, retryInterval, searchString) {
+  let deploymentUrl = null;
+  while (!deploymentUrl) {
+    deploymentUrl = await tryGetResult(args, searchString);
+    if (!deploymentUrl) {
       console.log(
-        `No deployments found, waiting ${retryInterval} milliseconds and trying again`
+        `No deployment matching the search string found, waiting ${retryInterval} milliseconds and trying again`
       );
     }
     await new Promise((resolve) => setTimeout(resolve, retryInterval));
   }
-  return deployments;
+  return deploymentUrl;
 }
 
-
-async function tryGetResult(args) {
+async function tryGetResult(args, searchString) {
   const octokit = (0,github.getOctokit)((0,core.getInput)("token", { required: true }));
   const result = await octokit.graphql((query_default()), args);
-
-  console.log(JSON.stringify(result.repository.ref.target.deployments.edges))
 
   await waitForRateLimitReset(result);
 
   const edges = lodash_es_get(result, "repository.ref.target.deployments.edges");
+  if (!edges || edges.length === 0) return null;
 
-  if (!edges) return null;
+  const urls = edges.map(edge => lodash_es_get(edge, 'node.latestStatus.environmentUrl', null)).filter(url => url !== null);
 
-  // Map each edge to its environment URL
-  return edges.map(edge => lodash_es_get(edge, 'node.latestStatus.environmentUrl', null));
+  // Check each URL for the searchString and return the first match
+  for (const url of urls) {
+    try {
+      const response = await _notfoundnode_fetch_default()(url);
+      const text = await response.text();
+      if (text.includes(searchString)) {
+        return url; // Return the first matching URL
+      }
+    } catch (error) {
+      console.error(`Failed to fetch from ${url}: ${error}`);
+    }
+  }
+  return null; // Return null if no matching URL is found
 }
 
 async function waitForRateLimitReset(result) {
@@ -32566,16 +32587,17 @@ async function run() {
       process.env.GITHUB_HEAD_REF ||
       process.env.GITHUB_REF.match(/(?<=refs\/heads\/).+/g)[0];
     const retryInterval = Number((0,core.getInput)("retryInterval"));
+    const searchString = (0,core.getInput)("searchString", { required: true });
 
     const args = { repo, owner, branch };
     console.log("Starting to run with following input:", args);
 
-    const deployments = await getDeployment(args, retryInterval);
+    const deploymentUrl = await getDeployment(args, retryInterval, searchString);
 
-    console.log(deployments)
+    console.log(deploymentUrl)
     
-    ;(0,core.setOutput)("deployments", JSON.stringify(deployments)); // Update output name and value
-    console.log("Deployments set: ", JSON.stringify(deployments));
+    ;(0,core.setOutput)("deploymentUrl", deploymentUrl);
+    console.log("Deployment URL set: ", deploymentUrl);
   } catch (error) {
     (0,core.setFailed)(error.message);
   }
