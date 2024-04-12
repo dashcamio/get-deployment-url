@@ -4,16 +4,16 @@ import { get } from "lodash-es";
 import query from "./query.gql";
 
 async function getDeployment(args, retryInterval) {
-  let environment = null;
-  while (!environment) {
-    environment = await tryGetResult(args);
-    if (!environment)
+  let deployments = null;
+  while (!deployments) {
+    deployments = await tryGetResult(args);
+    if (!deployments)
       console.log(
-        `environment is null, waiting ${retryInterval} milliseconds and trying again`
+        `Deployments are null, waiting ${retryInterval} milliseconds and trying again`
       );
     await new Promise((resolve) => setTimeout(resolve, retryInterval));
   }
-  return environment;
+  return deployments;
 }
 
 async function tryGetResult(args) {
@@ -27,7 +27,9 @@ async function tryGetResult(args) {
   const edges = get(result, "repository.ref.target.deployments.edges");
 
   if (!edges) return null;
-  return get(edges, `[0].node.latestStatus.environmentUrl`, null);
+
+  // Map each edge to its environment URL
+  return edges.map(edge => get(edge, 'node.latestStatus.environmentUrl', null));
 }
 
 async function waitForRateLimitReset(result) {
@@ -50,12 +52,12 @@ async function run() {
     const args = { repo, owner, branch };
     console.log("Starting to run with following input:", args);
 
-    const deployment = await getDeployment(args, retryInterval);
+    const deployments = await getDeployment(args, retryInterval);
 
-    console.log(deployment)
+    console.log(deployments)
     
-    setOutput("deployment", deployment);
-    console.log("Deployment set: ", JSON.stringify(deployment));
+    setOutput("deployments", deployments); // Update output name and value
+    console.log("Deployments set: ", JSON.stringify(deployments));
   } catch (error) {
     setFailed(error.message);
   }
