@@ -47,6 +47,9 @@ async function run() {
     console.log("Starting to run with following input:", args);
 
     const deployment = await getDeployment(args, retryInterval);
+
+    console.log(deployment)
+    
     setOutput("deployment", deployment);
     console.log("Deployment set: ", JSON.stringify(deployment));
   } catch (error) {
