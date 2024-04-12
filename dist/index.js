@@ -29196,7 +29196,7 @@ module.exports = `query($repo: String!, $owner: String!, $branch: String!) {
     ref(qualifiedName: $branch) {
       target {
         ... on Commit {
-          deployments(last: 1) {
+          deployments(last: 10) {
             edges {
               node {
                 latestStatus {
@@ -29218,6 +29218,7 @@ module.exports = `query($repo: String!, $owner: String!, $branch: String!) {
   }
 }
 `
+
 
 /***/ }),
 
