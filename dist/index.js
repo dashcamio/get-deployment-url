@@ -32520,17 +32520,19 @@ var query_default = /*#__PURE__*/__nccwpck_require__.n(query);
 
 
 async function getDeployment(args, retryInterval) {
-  let deployments = null;
-  while (!deployments) {
+  let deployments = [];
+  while (deployments.length === 0) {  // Check for an empty array
     deployments = await tryGetResult(args);
-    if (!deployments)
+    if (deployments.length === 0) {  // Still check and log if no deployments
       console.log(
-        `Deployments are null, waiting ${retryInterval} milliseconds and trying again`
+        `No deployments found, waiting ${retryInterval} milliseconds and trying again`
       );
+    }
     await new Promise((resolve) => setTimeout(resolve, retryInterval));
   }
   return deployments;
 }
+
 
 async function tryGetResult(args) {
   const octokit = (0,github.getOctokit)((0,core.getInput)("token", { required: true }));

@@ -4,17 +4,19 @@ import { get } from "lodash-es";
 import query from "./query.gql";
 
 async function getDeployment(args, retryInterval) {
-  let deployments = null;
-  while (!deployments) {
+  let deployments = [];
+  while (deployments.length === 0) {  // Check for an empty array
     deployments = await tryGetResult(args);
-    if (!deployments)
+    if (deployments.length === 0) {  // Still check and log if no deployments
       console.log(
-        `Deployments are null, waiting ${retryInterval} milliseconds and trying again`
+        `No deployments found, waiting ${retryInterval} milliseconds and trying again`
       );
+    }
     await new Promise((resolve) => setTimeout(resolve, retryInterval));
   }
   return deployments;
 }
+
 
 async function tryGetResult(args) {
   const octokit = getOctokit(getInput("token", { required: true }));
