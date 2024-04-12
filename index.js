@@ -20,7 +20,7 @@ async function tryGetResult(args) {
   const octokit = getOctokit(getInput("token", { required: true }));
   const result = await octokit.graphql(query, args);
 
-  console.log(result)
+  console.log(result.repository.ref.target.deployments.edges)
 
   await waitForRateLimitReset(result);
 
