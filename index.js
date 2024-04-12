@@ -29,8 +29,11 @@ async function tryGetResult(args, searchString) {
   // Check each URL string for the searchString and return the first match
   for (const edge of edges) {
     const url = get(edge, 'node.latestStatus.environmentUrl', null);
+    console.log('got url', url)
     if (url && url.includes(searchString)) {
       return url; // Return the first matching URL
+    } else {
+      console.log('no match found', url, searchString)
     }
   }
   return null; // Return null if no matching URL is found
